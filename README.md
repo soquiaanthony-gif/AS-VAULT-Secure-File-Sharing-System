@@ -112,17 +112,3 @@ This is the same approach used by TLS/HTTPS, PGP email, and SSH.
 - Encrypted files stored with UUID filenames (no information leakage)
 - `node-forge` cryptographic library (well-audited, no native binaries)
 
----
-
-## Grading Criteria Mapping
-
-| Criteria | Implementation |
-|----------|----------------|
-| Functionality | Full upload/download/delete flow |
-| AES + RSA Encryption | `backend/crypto.js` — hybrid encryption |
-| Security Features | bcrypt, JWT, access control, encrypted private keys |
-| Documentation | This README + inline code comments |
-| Diagrams | See documentation |
-| Code Quality | Modular routes, middleware, separated concerns |
-| GitHub | This repository |
-| Presentation | Live demo at localhost:3000 |
