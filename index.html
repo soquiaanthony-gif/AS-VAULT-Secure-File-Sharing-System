@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AS Vault</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --border: #e8e6e1;
+    --border-dark: #d0cdc6;
+    --text: #1a1917;
+    --muted: #8c8984;
+    --accent: #1a1917;
+    --green: #2d6a4f;
+    --red: #c0392b;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── AUTH PAGE ─────────────────────────────── */
+  #auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .wordmark {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 3.5rem;
+  }
+
+  .auth-box {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .auth-tabs {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .auth-tab {
+    background: none;
+    border: none;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .auth-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--text);
+  }
+
+  .field { margin-bottom: 1rem; }
+
+  .field label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.6rem 0.75rem;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus { border-color: var(--text); }
+  .field input::placeholder { color: var(--border-dark); }
+
+  .btn-submit {
+    width: 100%;
+    margin-top: 1.5rem;
+    background: var(--text);
+    border: none;
+    border-radius: 4px;
+    padding: 0.65rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--bg);
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-submit:hover { opacity: 0.8; }
+  .btn-submit:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .msg {
+    margin-top: 0.75rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    line-height: 1.5;
+  }
+  .msg.err { color: var(--red); }
+  .msg.ok  { color: var(--green); }
+
+  /* ── APP PAGE ──────────────────────────────── */
+  #app-page { display: none; min-height: 100vh; }
+
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg);
+  }
+
+  .nav-brand {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .nav-user {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .btn-link {
+    background: none;
+    border: none;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .btn-link:hover { color: var(--text); }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+
+  /* Upload area */
+  .upload-area {
+    border: 1px dashed var(--border-dark);
+    border-radius: 6px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    margin-bottom: 2.5rem;
+  }
+  .upload-area:hover,
+  .upload-area.over {
+    border-color: var(--text);
+    background: var(--surface);
+  }
+  .upload-area p {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .upload-area p + p { margin-top: 0.35rem; font-size: 0.6rem; opacity: 0.6; }
+  #file-input { display: none; }
+
+  /* Progress */
+  .progress-wrap {
+    display: none;
+    margin-bottom: 2.5rem;
+  }
+  .progress-track {
+    height: 1px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--text);
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* Section */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-label button {
+    background: none;
+    border: none;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: 0.1em;
+  }
+  .section-label button:hover { color: var(--text); }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .stat { }
+  .stat-n {
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+  }
+  .stat-l {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+    letter-spacing: 0.08em;
+  }
+
+  /* File list */
+  .file-list { display: flex; flex-direction: column; }
+
+  .file-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border);
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .file-row:last-child { border-bottom: none; }
+
+  .file-name {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .file-size {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .file-date {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .row-actions { display: flex; gap: 0.75rem; }
+
+  .btn-row {
+    background: none;
+    border: none;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+    text-transform: uppercase;
+  }
+  .btn-row:hover { color: var(--text); }
+  .btn-row.del:hover { color: var(--red); }
+
+  .empty {
+    padding: 3rem 0;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── MODAL ─────────────────────────────────── */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(247,246,243,0.85);
+    backdrop-filter: blur(2px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 320px;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .modal-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .btn-cancel-m {
+    flex: 1;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.6rem;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .btn-cancel-m:hover { border-color: var(--text); color: var(--text); }
+
+  .btn-confirm-m {
+    flex: 1;
+    background: var(--text);
+    border: 1px solid var(--text);
+    border-radius: 4px;
+    padding: 0.6rem;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--bg);
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-confirm-m:hover { opacity: 0.75; }
+  .btn-confirm-m:disabled { opacity: 0.35; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-page">
+  <div class="wordmark">AS Vault</div>
+
+  <div class="auth-box">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Sign in</button>
+      <button class="auth-tab" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <div id="login-form">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="l-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-submit" onclick="doLogin()">Continue</button>
+      <div id="l-msg" class="msg"></div>
+    </div>
+
+    <div id="register-form" style="display:none">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="r-user" placeholder="username">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="r-email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="r-pass" placeholder="••••••••">
+      </div>
+      <button class="btn-submit" onclick="doRegister()">Create account</button>
+      <div id="r-msg" class="msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-page">
+  <nav>
+    <span class="nav-brand">AS Vault</span>
+    <div class="nav-right">
+      <span class="nav-user" id="nav-user"></span>
+      <button class="btn-link" onclick="doLogout()">Sign out</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-n" id="s-count">0</div>
+        <div class="stat-l">Files</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="s-size">—</div>
+        <div class="stat-l">Stored</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n">AES‑256</div>
+        <div class="stat-l">Encryption</div>
+      </div>
+    </div>
+
+    <div class="upload-area" id="drop-zone"
+         onclick="document.getElementById('file-input').click()"
+         ondragover="onDragOver(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
+      <p>Drop a file or click to upload</p>
+      <p>Max 10 MB · encrypted before storage</p>
+      <input type="file" id="file-input" onchange="doUpload(this.files[0])">
+    </div>
+
+    <div class="progress-wrap" id="prog-wrap">
+      <div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
+      <div class="progress-label" id="prog-label">Encrypting…</div>
+    </div>
+
+    <div class="section-label">
+      <span>Files</span>
+      <button onclick="loadFiles()">Refresh</button>
+    </div>
+
+    <div class="file-list" id="file-list">
+      <div class="empty">No files yet.</div>
+    </div>
+  </main>
+</div>
+
+<!-- Decrypt modal -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">Decrypt file</div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="m-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="m-msg" class="msg"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel-m" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm-m" id="m-confirm" onclick="doDecrypt()">Download</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let token = null, user = null, dlId = null;
+
+// ── Auth ──────────────────────────────────────
+function switchTab(t) {
+  document.getElementById('login-form').style.display = t === 'login' ? '' : 'none';
+  document.getElementById('register-form').style.display = t === 'register' ? '' : 'none';
+  document.querySelectorAll('.auth-tab').forEach((b,i) => {
+    b.classList.toggle('active', (i===0&&t==='login')||(i===1&&t==='register'));
+  });
+}
+
+function setMsg(id, txt, type) {
+  const el = document.getElementById(id);
+  el.textContent = txt;
+  el.className = 'msg ' + (type || '');
+}
+
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  if (!email || !pass) return setMsg('l-msg','Fill in all fields','err');
+  try {
+    const r = await fetch('/api/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password: pass})
+    });
+    const d = await r.json();
+    if (!r.ok) return setMsg('l-msg', d.error, 'err');
+    saveSession(d.token, d.user);
+    showApp();
+  } catch { setMsg('l-msg','Cannot reach server — is it running?','err'); }
+}
+
+async function doRegister() {
+  const username = document.getElementById('r-user').value.trim();
+  const email    = document.getElementById('r-email').value.trim();
+  const pass     = document.getElementById('r-pass').value;
+  if (!username||!email||!pass) return setMsg('r-msg','Fill in all fields','err');
+  try {
+    const r = await fetch('/api/auth/register', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username, email, password: pass})
+    });
+    const d = await r.json();
+    if (!r.ok) return setMsg('r-msg', d.error, 'err');
+    setMsg('r-msg','Account created — signing in…','ok');
+    saveSession(d.token, d.user);
+    setTimeout(showApp, 700);
+  } catch { setMsg('r-msg','Cannot reach server — is it running?','err'); }
+}
+
+function saveSession(t, u) {
+  token = t; user = u;
+  sessionStorage.setItem('token', t);
+  sessionStorage.setItem('user', JSON.stringify(u));
+}
+
+function doLogout() {
+  token = null; user = null;
+  sessionStorage.clear();
+  document.getElementById('app-page').style.display = 'none';
+  document.getElementById('auth-page').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('auth-page').style.display = 'none';
+  document.getElementById('app-page').style.display = 'block';
+  document.getElementById('nav-user').textContent = user.username;
+  loadFiles();
+}
+
+// ── Files ─────────────────────────────────────
+async function loadFiles() {
+  try {
+    const r = await fetch('/api/files', { headers:{Authorization:`Bearer ${token}`} });
+    const d = await r.json();
+    renderFiles(d.files || []);
+  } catch { renderFiles([]); }
+}
+
+function renderFiles(files) {
+  let total = 0;
+  files.forEach(f => total += f.size);
+  document.getElementById('s-count').textContent = files.length;
+  document.getElementById('s-size').textContent = files.length ? fmt(total) : '—';
+
+  const list = document.getElementById('file-list');
+  if (!files.length) { list.innerHTML = '<div class="empty">No files yet.</div>'; return; }
+
+  list.innerHTML = files.map(f => `
+    <div class="file-row">
+      <span class="file-name">${esc(f.originalName)}</span>
+      <span class="file-size">${fmt(f.size)}</span>
+      <span class="file-date">${new Date(f.createdAt).toLocaleDateString()}</span>
+      <div class="row-actions">
+        <button class="btn-row" onclick="openModal('${f.id}')">Decrypt</button>
+        <button class="btn-row del" onclick="doDelete('${f.id}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Upload ────────────────────────────────────
+function onDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('over'); }
+function onDragLeave() { document.getElementById('drop-zone').classList.remove('over'); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('over');
+  if (e.dataTransfer.files[0]) doUpload(e.dataTransfer.files[0]);
+}
+
+async function doUpload(file) {
+  if (!file) return;
+  const wrap = document.getElementById('prog-wrap');
+  const bar  = document.getElementById('prog-bar');
+  const lbl  = document.getElementById('prog-label');
+
+  wrap.style.display = 'block';
+  bar.style.width = '0%';
+  lbl.textContent = 'Encrypting…';
+
+  const steps = [
+    [15, 'Generating AES-256 key…'],
+    [45, 'Encrypting file…'],
+    [72, 'Wrapping key with RSA-2048…'],
+    [90, 'Uploading…'],
+  ];
+  for (const [w, t] of steps) {
+    await sleep(300);
+    bar.style.width = w + '%';
+    lbl.textContent = t;
+  }
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const r = await fetch('/api/files/upload', {
+      method:'POST', headers:{Authorization:`Bearer ${token}`}, body: fd
+    });
+    const d = await r.json();
+    if (!r.ok) { lbl.textContent = d.error; return; }
+    bar.style.width = '100%';
+    lbl.textContent = 'Done';
+    await sleep(800);
+    wrap.style.display = 'none';
+    document.getElementById('file-input').value = '';
+    loadFiles();
+  } catch {
+    lbl.textContent = 'Upload failed';
+  }
+}
+
+// ── Download ──────────────────────────────────
+function openModal(id) {
+  dlId = id;
+  document.getElementById('m-pass').value = '';
+  document.getElementById('m-msg').textContent = '';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('m-pass').focus(), 50);
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  dlId = null;
+}
+
+async function doDecrypt() {
+  const pass = document.getElementById('m-pass').value;
+  if (!pass) return;
+  const btn = document.getElementById('m-confirm');
+  btn.disabled = true; btn.textContent = 'Decrypting…';
+
+  try {
+    const r = await fetch(`/api/files/${dlId}/download`, {
+      method:'POST',
+      headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+      body: JSON.stringify({password: pass})
+    });
+    if (!r.ok) {
+      const d = await r.json();
+      document.getElementById('m-msg').textContent = d.error;
+      document.getElementById('m-msg').className = 'msg err';
+      btn.disabled = false; btn.textContent = 'Download';
+      return;
+    }
+    const blob = await r.blob();
+    const cd   = r.headers.get('Content-Disposition') || '';
+    const name = (cd.match(/filename="(.+?)"/) || [])[1] || 'file';
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), {href:url, download:name});
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    closeModal();
+  } catch {
+    document.getElementById('m-msg').textContent = 'Network error';
+    document.getElementById('m-msg').className = 'msg err';
+  }
+  btn.disabled = false; btn.textContent = 'Download';
+}
+
+// ── Delete ────────────────────────────────────
+async function doDelete(id) {
+  if (!confirm('Delete this file permanently?')) return;
+  await fetch(`/api/files/${id}`, { method:'DELETE', headers:{Authorization:`Bearer ${token}`} });
+  loadFiles();
+}
+
+// ── Utils ─────────────────────────────────────
+function fmt(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(2) + ' MB';
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Boot ──────────────────────────────────────
+(function() {
+  const t = sessionStorage.getItem('token');
+  const u = sessionStorage.getItem('user');
+  if (t && u) { token = t; user = JSON.parse(u); showApp(); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('modal').classList.contains('open')) doDecrypt();
+  });
+})();
+</script>
+</body>
+</html>
